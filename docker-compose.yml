@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  nest-app:
+    build:
+      context: ./nest-app
+    container_name: nest-app
+    hostname: nest-app
+    ports:
+      - "3000:3000"
+    networks:
+      - choonghee
+
+  nginx-proxy:
+    build:
+      context: ./docker-nginx
+    container_name: nginx-proxy
+    hostname: nginx-proxy
+    ports:
+      - "80:80"
+    depends_on:
+      - nest-app
+    networks:
+      - choonghee
+
+networks:
+  choonghee:
+    external: true
