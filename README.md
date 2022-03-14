@@ -1,34 +1,38 @@
-## Node Nginx Docker Compose
-
-Theses are references to up docker-compose for Node.js application and Nginx web server.
+## Node Nginx Docker ECS
 
 ### Install Docker
 
-1. [Install Docker](https://docs.docker.com/engine/install/ubuntu/)
-2. [Install Docker Compose](https://docs.docker.com/compose/install/#install-compose)
-
-### Modify files
-
-- `Dockerfile` for each
-- `nginx.conf`
-- `docker-compose.yml`
-
-### Create a Docker network
-
-```bash
-docker network create \[YOUR_NETWORK_NAME\]
+```
+curl -fsSL https://get.docker.com/ | sudo sh
+sudo usermod -aG docker $USER
 ```
 
-### Handle docker containers
+### Docker: Node Application
 
-```bash
-docker-compose up -d
-docker-compose down
+#### Dockerfile
 
-docker ps
-docker ps -a
-docker rm \[COTAINER_ID\]
+```Dockerfile
+FROM node:16.14.0
 
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["npm", "start"]
+```
+
+#### Build & Run
+
+Before you build, please check app configuration.
+
+```
+docker build -t [IMAGE_NAME] .
 docker image list
-docker image rm \[IMAGE_ID\]
+docker run -p [CONTAINER_PORT]:[HOST_PORT] [IMAGE_NAME]
 ```
