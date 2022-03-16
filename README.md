@@ -2,7 +2,7 @@
 
 ## 0. Prerequisite
 
-I did this on a free-tier instance of AWS EC2
+I did this on a free-tier instance of AWS EC2 (ubuntu 20)
 
 ### Install Docker
 
@@ -93,7 +93,7 @@ docker run -p [CONTAINER_PORT]:[HOST_PORT] -d --link [NODE_CONTAINER_NAME] --nam
 ### Install Docker-Compose
 
 ```
-sudo apt-get install docker-compose
+sudo apt install docker-compose
 ```
 
 ### Create a docker network
@@ -139,4 +139,47 @@ networks:
 ```
 docker-compose up -d --build
 docker-compose down
+```
+
+## 3. Upload Image to AWS ECR
+
+ECR (Elastic Container Repository) is the repository service under ECS (Elastic Container Service).
+
+### Install awscli
+
+```
+sudo apt install awscli
+```
+
+### Login to ECR
+
+Prepare your AWS user credential
+
+- access key
+- access secret key
+
+```
+aws configure
+
+aws ecr get-login --no-include-email --region [YOUR_AWS_REGION]
+
+#################################################
+# COPY AND PASTE the result of previous command #
+#################################################
+docker login -u AWS -p abcdefg...
+
+```
+
+### Tag ECR URI to Docker Images
+
+Tag ECS URI to an Docker image. Notice that the image IDs are same.
+
+```
+docker tag [IMAGE_NAME_OR_ID] [ECR_URI]
+```
+
+### Push Docker Image to ECR
+
+```
+docker push [ECR_URI]
 ```
