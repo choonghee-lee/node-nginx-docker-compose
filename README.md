@@ -55,7 +55,7 @@ Check the port number. It's the number in Dockerfile of Node project.
 
 ```
 events {
-
+  # Do not remove this block...
 }
 
 http {
@@ -86,4 +86,57 @@ COPY nginx.conf /etc/nginx/nginx.conf
 ```
 docker build -t [IMAGE_NAME] .
 docker run -p [CONTAINER_PORT]:[HOST_PORT] -d --link [NODE_CONTAINER_NAME] --name [COTAINER_NAME] [IMAGE_NAME]
+```
+
+## 2. Node + Nginx with Docker-Compose
+
+### Install Docker-Compose
+
+```
+sudo apt-get install docker-compose
+```
+
+### Create a docker network
+
+```
+docker network create [NETWORK_NAME]
+```
+
+### docker-compose.yml
+
+```yaml
+version: "3"
+services:
+  mynode:
+    build:
+      context: [NODE_APP_PATH]
+    container_name: mynode
+    hostname: mynode
+    ports:
+      - "3000:3000"
+    networks:
+      - [NETWORK_NAME]
+
+  mynginx:
+    build:
+      context: [NGINX_PATH]
+    container_name: mynginx
+    hostname: mynginx
+    ports:
+      - "80:80"
+    depends_on:
+      - mynode
+    networks:
+      - [NETWORK_NAME]
+
+networks:
+  [NETWORK_NAME]:
+    external: true
+```
+
+### Run&Stop Docker-Compose
+
+```
+docker-compose up -d --build
+docker-compose down
 ```
