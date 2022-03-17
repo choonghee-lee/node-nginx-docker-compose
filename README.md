@@ -170,6 +170,12 @@ docker login -u AWS -p abcdefg...
 
 ```
 
+### Create Repository
+
+```
+aws ecr create-repository --repository-name [REPO_NAME] --region [YOUR_AWS_REGIN]
+```
+
 ### Tag ECR URI to Docker Images
 
 Tag ECS URI to an Docker image. Notice that the image IDs are same.
