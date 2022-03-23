@@ -189,3 +189,114 @@ docker tag [IMAGE_NAME_OR_ID] [ECR_URI]
 ```
 docker push [ECR_URI]
 ```
+
+## 4. Run Node with ECS
+
+### 1. Create Cluster
+```
+aws ecs create-cluster --cluster-name [CLUSTER_NAME]
+```
+
+### 2. Create ECS Task Execution Role
+
+#### ecs-tasks-trust-policy.json
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+```
+
+#### Create Role
+
+The file scheme must be included.
+```
+aws iam create-role --role-name ecsTaskExecutionRole \
+--assume-role-policy-document file://[PATH]/ecs-tasks-trust-policy.json
+```
+
+#### Attach Role to AWS Account
+
+```
+aws iam attach-role-policy \
+      --role-name ecsTaskExecutionRole \
+      --policy-arn arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+```
+
+### 3. Generate Task Definition
+
+#### Generate Template File
+
+The file name doesn't need to be `task.json`. you can choose the name you want.
+```
+aws ecs register-task-definition --generate-cli-skeleton > task.json
+```
+
+#### Configure Task Definition
+
+Make a json file to define parameters for a task definition. For more parameter information, check out [this AWS document](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html).
+
+```json
+{
+    "family": "nodeapp",
+    "executionRoleArn": "ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "[CONTAINER_NAME]",
+            "image": "[ECR_IMAGE_URI]",
+            "portMappings": [
+                {
+                    "containerPort": [CONTAINER_PORT],
+                    "hostPort": [HOST_PORT], 
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "256",
+    "memory": "512",
+}
+```
+
+#### Register Task Definition
+
+```
+aws ecs register-task-definition --cli-input-json file://$HOME/[PATH]/task.json
+```
+
+### 4. Create ECS Cluster & Service
+
+#### Create Cluster
+
+```
+aws ecs create-cluster --cluster-name [CLUSTER_NAME]
+```
+
+#### Create Service
+
+You can find the public ip, in task of the service on AWS ECS console.
+
+```
+aws ecs create-service --cluster [CLUSTER_NAME] --service-name [SERVICE_NAME] --task-definition [TASK_DEFINITION_NAME:REVISION] --desired-count 1 --launch-type "FARGATE" --network-configuration "awsvpcConfiguration={subnets=[[SUBNET_ID], [SUBNET_ID], ...],securityGroups=[[SECURITY_GROUP_ID], [SECURITY_GROUP_ID], ...],assignPublicIp=ENABLED}"
+```
+
+#### Delete Service & Cluster
+
+```
+aws ecs delete-service --cluster [CLUSTER_NAME] --service [SERVICE_NAME] --force
+aws ecs delete-cluster --cluster [CLUSTER_NAME]
+```
